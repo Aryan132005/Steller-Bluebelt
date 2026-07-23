@@ -23,6 +23,10 @@ export const Sentry = {
 export const trackEvent = (eventName: string, props?: Record<string, any>) => {
   console.log(`[Plausible Event] ${eventName}`, props ? JSON.stringify(props) : '');
   
+  if (eventName.startsWith('Funnel_')) {
+    console.info(`[Funnel Telemetry] Transitioned to onboarding stage: ${eventName.slice(7)}`, props || '');
+  }
+
   // If Plausible is loaded on the page, dispatch the event
   if ((window as any).plausible) {
     try {
