@@ -1388,3 +1388,22 @@ a:focus-visible {
   }
 }
 
+.crash-card {
+  border-left: 4px solid var(--danger) !important;
+}
+
+.error-log-box {
+  background: rgba(255, 107, 107, 0.05);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 14px 0;
+  max-height: 150px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--danger);
+  word-break: break-all;
+}
+
+
