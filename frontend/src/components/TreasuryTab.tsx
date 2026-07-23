@@ -27,6 +27,10 @@ export default function TreasuryTab({
       setError('Please enter a valid deposit amount.');
       return;
     }
+    if (amount > 10000) {
+      setError('Deposit limit is 10,000 XLM per transaction for testing safety.');
+      return;
+    }
     setError(null);
     onDeposit(amount);
     setDepositAmount('');
