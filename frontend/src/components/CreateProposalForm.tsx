@@ -29,9 +29,9 @@ export function CreateProposalForm({
     const newErrors: Record<string, string> = {};
 
     if (!title.trim()) {
-      newErrors.title = 'Title is required.';
-    } else if (title.length > 50) {
-      newErrors.title = 'Title must be under 50 characters.';
+      newErrors.title = 'Proposal title cannot be blank.';
+    } else if (title.trim().length > 50) {
+      newErrors.title = 'Proposal title is too long (must be 50 characters or less).';
     }
 
     if (!description.trim()) {
