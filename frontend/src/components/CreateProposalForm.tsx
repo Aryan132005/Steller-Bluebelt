@@ -36,6 +36,8 @@ export function CreateProposalForm({
 
     if (!description.trim()) {
       newErrors.description = 'Description is required.';
+    } else if (description.trim().length < 15) {
+      newErrors.description = 'Please provide a more detailed description (minimum 15 characters) so voters have enough context.';
     }
 
     const amount = Number(amountStr);
