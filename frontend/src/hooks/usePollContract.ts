@@ -38,13 +38,17 @@ export function usePollContract(publicKey: string | null) {
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!publicKey) return;
+    // Visibility throttling to prevent rate limits when tab is inactive
+    if (document.hidden) {
+      console.log('[RPC Throttler] Skipping poll because document is hidden');
+      return;
+    }
     setIsSyncing(true);
     try {
       const [props, tBal, rBal, hist, seq] = await Promise.all([
         getProposals(publicKey),
         getTreasuryBalance(publicKey),
-        getReputationBalance(publicKey, publicKey),
+        publicKey ? getReputationBalance(publicKey, publicKey) : Promise.resolve(0),
         getDisbursementHistory(publicKey),
         getLatestLedgerSequence(),
       ]);
@@ -66,22 +70,12 @@ export function usePollContract(publicKey: string | null) {
   }, [publicKey, proposals.length]);
 
   const initialLoad = useCallback(async () => {
-    if (!publicKey) return;
     setLoading(true);
     await refresh();
     setLoading(false);
-  }, [publicKey, refresh]);
+  }, [refresh]);
 
   useEffect(() => {
-    if (!publicKey) {
-      setProposals([]);
-      setTreasuryBalance(0);
-      setReputationBalance(0);
-      setDisbursements([]);
-      setLatestLedger(0);
-      return;
-    }
-
     initialLoad();
 
     pollTimer.current = setInterval(refresh, POLL_INTERVAL_MS);
@@ -89,7 +83,7 @@ export function usePollContract(publicKey: string | null) {
       if (pollTimer.current) clearInterval(pollTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicKey]);
+  }, [publicKey, initialLoad, refresh]);
 
   // --- Proposal Actions ---
 
@@ -120,6 +114,16 @@ export function usePollContract(publicKey: string | null) {
         const hash = await submitTransaction(signedTxXdr);
 
         setTxState({ state: 'success', hash, action: 'proposal_creation' });
+
+        // Onboarding Funnel Telemetry: First Action Completed
+        const firstActionCompleted = localStorage.getItem('grantpulse_first_action');
+        if (!firstActionCompleted) {
+          localStorage.setItem('grantpulse_first_action', 'true');
+          import('../lib/analytics').then(({ trackEvent }) => {
+            trackEvent('Funnel_FirstActionCompleted', { actionType: 'proposal' });
+          });
+        }
+
         await refresh();
       } catch (err: any) {
         const message =
@@ -135,6 +139,26 @@ export function usePollContract(publicKey: string | null) {
   const vote = useCallback(
     async (proposalId: number, support: boolean) => {
       if (!publicKey) return;
+
+      // Optimistic UI Update: immediately mark as voted and adjust tally
+      const originalProposals = [...proposals];
+      const addedWeight = reputationBalance || 1;
+
+      setProposals((prevProposals) =>
+        prevProposals.map((p) => {
+          if (p.id === proposalId) {
+            return {
+              ...p,
+              userVoted: true,
+              userWeight: addedWeight,
+              supportVotes: support ? p.supportVotes + addedWeight : p.supportVotes,
+              opposeVotes: !support ? p.opposeVotes + addedWeight : p.opposeVotes,
+            };
+          }
+          return p;
+        })
+      );
+
       setTxState({ state: 'pending', step: 'building' });
       try {
         const unsignedXdr = await buildVoteTransaction(publicKey, proposalId, support);
@@ -149,8 +173,21 @@ export function usePollContract(publicKey: string | null) {
         const hash = await submitTransaction(signedTxXdr);
 
         setTxState({ state: 'success', hash, action: 'vote' });
+
+        // Onboarding Funnel Telemetry: First Action Completed
+        const firstActionCompleted = localStorage.getItem('grantpulse_first_action');
+        if (!firstActionCompleted) {
+          localStorage.setItem('grantpulse_first_action', 'true');
+          import('../lib/analytics').then(({ trackEvent }) => {
+            trackEvent('Funnel_FirstActionCompleted', { actionType: 'vote' });
+          });
+        }
+
         await refresh();
       } catch (err: any) {
+        // Rollback state if the transaction failed
+        setProposals(originalProposals);
+
         const message =
           err instanceof ContractCallError
             ? err.message
@@ -158,7 +195,7 @@ export function usePollContract(publicKey: string | null) {
         setTxState({ state: 'error', message });
       }
     },
-    [publicKey, refresh]
+    [publicKey, proposals, reputationBalance, refresh]
   );
 
   const closeProposal = useCallback(

@@ -19,6 +19,12 @@ export const server = new rpc.Server(SOROBAN_RPC_URL);
 
 export class ContractCallError extends Error {}
 
+export const PUBLIC_FALLBACK_KEY = 'GCXAWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY';
+
+// Cache for closed proposals' vote states to prevent redundant RPC lookups
+// Key format: `${proposalId}-${voterAddress}`
+const closedProposalVoteCache = new Map<string, { userVoted: boolean; userWeight: number }>();
+
 export interface Proposal {
   id: number;
   creator: string;
@@ -133,43 +139,67 @@ export async function submitTransaction(signedXdr: string): Promise<string> {
 
 // --- Proposal Contract Calls ---
 
-export async function getProposals(sourcePublicKey: string): Promise<Proposal[]> {
+export async function getProposals(sourcePublicKey: string | null): Promise<Proposal[]> {
   try {
-    const raw = await simulateRead(PROPOSAL_CONTRACT_ID, 'list_proposals', [], sourcePublicKey);
+    const activeSource = sourcePublicKey || PUBLIC_FALLBACK_KEY;
+    const raw = await simulateRead(PROPOSAL_CONTRACT_ID, 'list_proposals', [], activeSource);
     const list = raw as any[];
-    const proposals: Proposal[] = [];
 
-    for (const p of list) {
-      const id = Number(p.id);
-      let userVoted = false;
-      let userWeight = 0;
+    // Fetch user-specific vote status in parallel using Promise.all
+    const proposals: Proposal[] = await Promise.all(
+      list.map(async (p) => {
+        const id = Number(p.id);
+        let userVoted = false;
+        let userWeight = 0;
 
-      if (sourcePublicKey) {
-        try {
-          userVoted = await hasVoted(sourcePublicKey, sourcePublicKey, id);
-          userWeight = await getVoteWeight(sourcePublicKey, sourcePublicKey, id);
-        } catch (e) {
-          console.warn('Failed to fetch user vote state for proposal', id, e);
+        // Only look up voting history if we have an actual user connected and it's not the read-only fallback
+        if (sourcePublicKey) {
+          const cacheKey = `${id}-${sourcePublicKey}`;
+          const isClosed = p.closed;
+
+          // Check cache for closed proposals
+          if (isClosed && closedProposalVoteCache.has(cacheKey)) {
+            const cached = closedProposalVoteCache.get(cacheKey)!;
+            userVoted = cached.userVoted;
+            userWeight = cached.userWeight;
+          } else {
+            try {
+              // Perform parallel calls for hasVoted and getVoteWeight
+              const [voted, weight] = await Promise.all([
+                hasVoted(sourcePublicKey, sourcePublicKey, id),
+                getVoteWeight(sourcePublicKey, sourcePublicKey, id),
+              ]);
+              userVoted = voted;
+              userWeight = weight;
+
+              // Store in cache if the proposal is closed
+              if (isClosed) {
+                closedProposalVoteCache.set(cacheKey, { userVoted, userWeight });
+              }
+            } catch (e) {
+              console.warn('Failed to fetch user vote state for proposal', id, e);
+            }
+          }
         }
-      }
 
-      proposals.push({
-        id,
-        creator: p.creator,
-        title: p.title,
-        description: p.description,
-        requestedAmount: Number(p.requested_amount) / 10_000_000,
-        recipient: p.recipient,
-        startLedger: Number(p.start_ledger),
-        votingDeadlineLedger: Number(p.voting_deadline_ledger),
-        supportVotes: Number(p.support_votes),
-        opposeVotes: Number(p.oppose_votes),
-        closed: p.closed,
-        approved: p.approved,
-        userVoted,
-        userWeight,
-      });
-    }
+        return {
+          id,
+          creator: p.creator,
+          title: p.title,
+          description: p.description,
+          requestedAmount: Number(p.requested_amount) / 10_000_000,
+          recipient: p.recipient,
+          startLedger: Number(p.start_ledger),
+          votingDeadlineLedger: Number(p.voting_deadline_ledger),
+          supportVotes: Number(p.support_votes),
+          opposeVotes: Number(p.oppose_votes),
+          closed: p.closed,
+          approved: p.approved,
+          userVoted,
+          userWeight,
+        };
+      })
+    );
 
     return proposals.sort((a, b) => b.id - a.id);
   } catch (error) {
@@ -260,15 +290,17 @@ export async function buildCloseProposalTransaction(
 // --- Reputation Token Calls ---
 
 export async function getReputationBalance(
-  sourcePublicKey: string,
-  voter: string
+  sourcePublicKey: string | null,
+  voter: string | null
 ): Promise<number> {
+  if (!voter) return 0;
+  const activeSource = sourcePublicKey || PUBLIC_FALLBACK_KEY;
   try {
     const bal = await simulateRead(
       REPUTATION_TOKEN_ID,
       'balance',
       [new Address(voter).toScVal()],
-      sourcePublicKey
+      activeSource
     );
     return Number(bal);
   } catch (err) {
@@ -279,9 +311,10 @@ export async function getReputationBalance(
 
 // --- Treasury Contract Calls ---
 
-export async function getTreasuryBalance(sourcePublicKey: string): Promise<number> {
+export async function getTreasuryBalance(sourcePublicKey: string | null): Promise<number> {
+  const activeSource = sourcePublicKey || PUBLIC_FALLBACK_KEY;
   try {
-    const balance = await simulateRead(TREASURY_CONTRACT_ID, 'get_balance', [], sourcePublicKey);
+    const balance = await simulateRead(TREASURY_CONTRACT_ID, 'get_balance', [], activeSource);
     return Number(balance) / 10_000_000;
   } catch (err) {
     console.warn('Failed to fetch treasury balance, using 0:', err);
@@ -289,13 +322,14 @@ export async function getTreasuryBalance(sourcePublicKey: string): Promise<numbe
   }
 }
 
-export async function getDisbursementHistory(sourcePublicKey: string): Promise<Disbursement[]> {
+export async function getDisbursementHistory(sourcePublicKey: string | null): Promise<Disbursement[]> {
+  const activeSource = sourcePublicKey || PUBLIC_FALLBACK_KEY;
   try {
     const raw = await simulateRead(
       TREASURY_CONTRACT_ID,
       'get_disbursement_history',
       [],
-      sourcePublicKey
+      activeSource
     );
     const history = raw as any[];
     return history.map((record: any) => ({
