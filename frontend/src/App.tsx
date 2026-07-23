@@ -47,14 +47,39 @@ export default function App() {
     refresh,
   } = usePollContract(wallet.publicKey);
 
-  const { events, error: eventsError } = usePollEvents(Boolean(isConnected));
+  const { events, error: eventsError } = usePollEvents(true); // Poll events for activity feed globally
 
   // View States
   const [activeTab, setActiveTab] = useState<'proposals' | 'create' | 'treasury'>('proposals');
   const [showTour, setShowTour] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [highlightedProposalId, setHighlightedProposalId] = useState<number | null>(null);
 
-  // Check onboarding on first connect
+  // Track landing page funnel event
+  useEffect(() => {
+    trackEvent('Funnel_Landing');
+  }, []);
+
+  // Parse deep-linked proposal parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const propId = params.get('proposal');
+    if (propId) {
+      const id = parseInt(propId, 10);
+      if (!isNaN(id)) {
+        setHighlightedProposalId(id);
+        setActiveTab('proposals');
+        setTimeout(() => {
+          const element = document.getElementById(`proposal-${id}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 1000);
+      }
+    }
+  }, [proposals.length]);
+
+  // Check onboarding and track connected wallet on first connect
   useEffect(() => {
     if (isConnected) {
       const tourCompleted = localStorage.getItem('grantpulse_tour_completed');
@@ -63,6 +88,13 @@ export default function App() {
         localStorage.setItem('grantpulse_tour_completed', 'true');
       }
       trackEvent('WalletConnected', { wallet: wallet.walletName });
+
+      // Onboarding Funnel: Wallet Connected successfully
+      const walletConnectedFunnel = sessionStorage.getItem('funnel_wallet_connected');
+      if (!walletConnectedFunnel) {
+        sessionStorage.setItem('funnel_wallet_connected', 'true');
+        trackEvent('Funnel_WalletConnected', { wallet: wallet.walletName });
+      }
     }
   }, [isConnected, wallet.walletName]);
 
@@ -107,6 +139,12 @@ export default function App() {
     await deposit(amount);
   };
 
+  // Calculate statistics strip metrics
+  const totalProposals = proposals.length;
+  const totalVotesCast = proposals.reduce((sum, p) => sum + p.supportVotes + p.opposeVotes, 0);
+  const totalDisbursed = disbursements.reduce((sum, d) => sum + d.amount, 0);
+  const myVotedProposals = proposals.filter((p) => p.userVoted);
+
   return (
     <SentryErrorBoundary>
       <div className="app">
@@ -126,6 +164,26 @@ export default function App() {
           )}
         </header>
 
+        {/* Public Stats Strip (Visible to all visitors) */}
+        <div className="stats-strip card">
+          <div className="stats-item">
+            <span className="stats-label">📋 Proposals</span>
+            <span className="stats-value">{totalProposals}</span>
+          </div>
+          <div className="stats-item">
+            <span className="stats-label">🗳️ Total Votes</span>
+            <span className="stats-value">{totalVotesCast} REP</span>
+          </div>
+          <div className="stats-item">
+            <span className="stats-label">🏦 Total Grants</span>
+            <span className="stats-value text-accent">{totalDisbursed.toFixed(1)} XLM</span>
+          </div>
+          <div className="stats-item">
+            <span className="stats-label">💰 Pool Liquidity</span>
+            <span className="stats-value">{treasuryBalance.toFixed(1)} XLM</span>
+          </div>
+        </div>
+
         {/* Wallet Onboarding Guide */}
         {showTour && <OnboardingTour onClose={() => setShowTour(false)} />}
 
@@ -139,106 +197,130 @@ export default function App() {
           onShowFeedback={() => setShowFeedback(true)}
         />
 
+        {/* My Activity view for connected voters */}
+        {isConnected && wallet.publicKey && (
+          <div className="card my-activity-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '14px', margin: 0 }}>👤 My Activity</h3>
+              <span className="rep-badge">🏆 <strong>{reputationBalance} REP</strong></span>
+            </div>
+            {myVotedProposals.length === 0 ? (
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+                You haven't cast any votes yet. Help the community by voting on active proposals below to earn +1 REP!
+              </p>
+            ) : (
+              <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                <ul className="activity-list" style={{ margin: 0, paddingLeft: '20px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                  {myVotedProposals.map((p) => (
+                    <li key={p.id} style={{ marginBottom: '6px' }}>
+                      Voted on <strong>Proposal #{p.id}: {p.title}</strong> (Weight: {p.userWeight} REP)
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Contextual Feedback Widget */}
         {showFeedback && (
           <FeedbackWidget onClose={() => setShowFeedback(false)} />
         )}
 
+        {/* Navigation Tabs (Only available when wallet connected) */}
         {isConnected && wallet.publicKey ? (
-          <>
-
-            {/* Navigation Tabs */}
-            <div className="nav-tabs-wrapper">
-              <nav className="nav-tabs">
-                <button
-                  className={`nav-tab-btn ${activeTab === 'proposals' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('proposals')}
-                >
-                  📋 initiatives
-                </button>
-                <button
-                  className={`nav-tab-btn ${activeTab === 'create' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('create')}
-                >
-                  ➕ submit proposal
-                </button>
-                <button
-                  className={`nav-tab-btn ${activeTab === 'treasury' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('treasury')}
-                >
-                  🏦 treasury pool
-                </button>
-              </nav>
-            </div>
-
-            {/* Transaction Alerts Panel */}
-            <TransactionStatus result={txState} onClose={resetTxState} />
-
-            {/* Platform Load Error Display */}
-            {loadError && (
-              <div className="card load-error-card animated-zoom">
-                <h3>⚠️ Network Error</h3>
-                <p>{loadError}</p>
-                <button className="btn btn-outline" onClick={refresh}>
-                  🔄 Retry Connection
-                </button>
-              </div>
-            )}
-
-            {/* Tab Views */}
-            <div className="tab-view-content">
-              {activeTab === 'proposals' && (
-                <ProposalList
-                  proposals={proposals}
-                  loading={loading}
-                  latestLedger={latestLedger}
-                  isVoting={txState.state === 'pending'}
-                  onVote={handleVoteSubmit}
-                  onCloseProposal={handleCloseProposalSubmit}
-                />
-              )}
-
-              {activeTab === 'create' && (
-                <CreateProposalForm
-                  treasuryBalance={treasuryBalance}
-                  isSubmitting={txState.state === 'pending'}
-                  onCreateProposal={handleCreateProposalSubmit}
-                />
-              )}
-
-              {activeTab === 'treasury' && (
-                <Suspense
-                  fallback={
-                    <div className="card skeleton-card">
-                      <div className="skeleton skeleton-title" style={{ width: '40%' }} />
-                      <div className="skeleton skeleton-badge" style={{ height: 48, marginTop: 12 }} />
-                    </div>
-                  }
-                >
-                  <TreasuryTab
-                    treasuryBalance={treasuryBalance}
-                    disbursements={disbursements}
-                    loading={loading}
-                    isSubmitting={txState.state === 'pending'}
-                    onDeposit={handleDepositSubmit}
-                  />
-                </Suspense>
-              )}
-            </div>
-
-            {/* Live Ledger Activity */}
-            <ActivityFeed events={events} error={eventsError} />
-          </>
+          <div className="nav-tabs-wrapper">
+            <nav className="nav-tabs">
+              <button
+                className={`nav-tab-btn ${activeTab === 'proposals' ? 'active' : ''}`}
+                onClick={() => setActiveTab('proposals')}
+              >
+                📋 initiatives
+              </button>
+              <button
+                className={`nav-tab-btn ${activeTab === 'create' ? 'active' : ''}`}
+                onClick={() => setActiveTab('create')}
+              >
+                ➕ submit proposal
+              </button>
+              <button
+                className={`nav-tab-btn ${activeTab === 'treasury' ? 'active' : ''}`}
+                onClick={() => setActiveTab('treasury')}
+              >
+                🏦 treasury pool
+              </button>
+            </nav>
+          </div>
         ) : (
-          <div className="card login-pitch-card">
-            <h3>🔒 Governance Portal Locked</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: '1.5', margin: '8px 0 16px' }}>
-              You need to connect an approved Stellar wallet (Freighter, xBull, or Albedo) on the Stellar Testnet to access voting dashboards, treasury balances, and create proposals.
-            </p>
+          <div style={{ marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+            <h3 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', margin: '20px 0 4px' }}>
+              📋 Active Initiatives (View-Only Mode)
+            </h3>
           </div>
         )}
 
-        <p className="footer-note">Stellar Soroban MVP · Level 4 Green Belt submission</p>
+        {/* Transaction Alerts Panel */}
+        <TransactionStatus result={txState} onClose={resetTxState} />
+
+        {/* Platform Load Error Display */}
+        {loadError && (
+          <div className="card load-error-card animated-zoom">
+            <h3>⚠️ Network Error</h3>
+            <p>{loadError}</p>
+            <button className="btn btn-outline" onClick={refresh}>
+              🔄 Retry Connection
+            </button>
+          </div>
+        )}
+
+        {/* Tab Views */}
+        <div className="tab-view-content">
+          {(activeTab === 'proposals' || !isConnected) && (
+            <ProposalList
+              proposals={proposals}
+              loading={loading}
+              latestLedger={latestLedger}
+              isVoting={txState.state === 'pending'}
+              isConnected={Boolean(isConnected)}
+              highlightedProposalId={highlightedProposalId}
+              onVote={handleVoteSubmit}
+              onCloseProposal={handleCloseProposalSubmit}
+              onClearHighlight={() => setHighlightedProposalId(null)}
+            />
+          )}
+
+          {isConnected && activeTab === 'create' && (
+            <CreateProposalForm
+              treasuryBalance={treasuryBalance}
+              isSubmitting={txState.state === 'pending'}
+              onCreateProposal={handleCreateProposalSubmit}
+            />
+          )}
+
+          {isConnected && activeTab === 'treasury' && (
+            <Suspense
+              fallback={
+                <div className="card skeleton-card">
+                  <div className="skeleton skeleton-title" style={{ width: '40%' }} />
+                  <div className="skeleton skeleton-badge" style={{ height: 48, marginTop: 12 }} />
+                </div>
+              }
+            >
+              <TreasuryTab
+                treasuryBalance={treasuryBalance}
+                disbursements={disbursements}
+                loading={loading}
+                isSubmitting={txState.state === 'pending'}
+                onDeposit={handleDepositSubmit}
+              />
+            </Suspense>
+          )}
+        </div>
+
+        {/* Live Ledger Activity */}
+        <ActivityFeed events={events} error={eventsError} />
+
+        <p className="footer-note">Stellar Soroban MVP · Level 5 Growth & Scale Submission</p>
       </div>
     </SentryErrorBoundary>
   );
