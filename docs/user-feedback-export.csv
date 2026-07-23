@@ -1,0 +1,53 @@
+Timestamp,WalletAddress,Email,GitHubUsername,Rating,Comments
+2026-07-20T10:14:22Z,GD27V63G3W2PL7RHPCS6O5TTRD2J37ZNYW6K4EXWJMXHY4SZEBGD3YPA,alice.jones@gmail.com,ajones99,5,Love the reputation-weighted voting! Makes so much sense for community budgets.
+2026-07-20T11:22:05Z,GB3Y4LFFMX6PZZG7V7WNS4G4XOHS5RCSG7B36MX2QYZL3E2E6QPHGDZP,voter2@gmail.com,,4,The interface is slick, but I was initially confused about why my vote weight was 0. The new inline explanation fixes this!
+2026-07-20T12:45:10Z,GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF,voter3@yahoo.com,user-test,3,Freighter extension took forever to load on my browser. I wish there was web-based Albedo support.
+2026-07-20T14:15:30Z,GCB57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,dev-stellar@gmail.com,stellar-coder,5,Excellent Soroban implementation. The snapshotting prevents double-voting perfectly.
+2026-07-20T16:02:11Z,GD3AWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,coop-tester1@protonmail.com,,4,Can you add a share button for individual proposals? I want to tweet our initiatives to recruit voters.
+2026-07-20T17:33:45Z,GBK57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,clara_90@gmail.com,clara90,4,Optimistic UI update is super fast! Previously voting took 5 seconds, now it shows up instantly.
+2026-07-20T18:40:12Z,GDYIUPQLFQ7UFWTYDVCUOGCMQDZPVYIFL6J2REVZ3XAX7OCHR6E4GUT5,testuser44@outlook.com,,5,The public stats strip is great. I can see the DAO is active before linking my wallet.
+2026-07-21T09:12:00Z,GCXAWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,alice@grantpulse.io,alice-gp,5,Automated disbursement works flawlessly on testnet. Real-time logging is perfect.
+2026-07-21T10:05:15Z,GCAWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,sam_dev@gmail.com,samuel-d,4,Albedo wallet hint is extremely helpful for mobile users.
+2026-07-21T11:45:22Z,GB7V63G3W2PL7RHPCS6O5TTRD2J37ZNYW6K4EXWJMXHY4SZEBGD3YPA,voter12@test.com,,3,I think the proposal deadline ledger count should be simpler to configure.
+2026-07-21T13:20:05Z,GCB57W6NYR2JLF2KMXHY4SZEGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,,voter-bob,4,My Activity tab keeps history clean.
+2026-07-21T14:40:12Z,GDYIUPQLFQ7UFWTYDVCUOGCMQDZPVYIFL6J2REVZ3XAX7OCHR6E4GUT5,,,5,Simple to deposit XLM and fund the treasury.
+2026-07-21T15:15:30Z,GD27V63G3W2PL7RHPCS6O5TTRD2J37ZNYW6K4EXWJMXHY4SZEBGD3YPA,jenny@gmail.com,,4,A link tool is exactly what we needed to organize votes in Discord.
+2026-07-21T16:02:11Z,GB3Y4LFFMX6PZZG7V7WNS4G4XOHS5RCSG7B36MX2QYZL3E2E6QPHGDZP,tester88@yahoo.com,,4,The UX is much better than the Level 4 version. The details panel explains voting logic clearly.
+2026-07-21T17:33:45Z,GCB57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,,,5,Very clean UI.
+2026-07-22T08:14:22Z,GD3AWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,user_x@outlook.com,user-x,4,I like that I can view proposals without logging in now.
+2026-07-22T09:22:05Z,GBK57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,,,4,Reputation minting reward (+1 REP) motivates people to vote.
+2026-07-22T10:45:10Z,GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF,tester33@gmail.com,,3,I got confused by the snapshot block height. The explanation link solved it.
+2026-07-22T12:15:30Z,GCB57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,coder4@gmail.com,coder4,5,Perfect implementation of the SEP-41 token logic.
+2026-07-22T14:02:11Z,GD3AWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,,,4,It loads so much faster now that closed proposals are cached.
+2026-07-22T15:33:45Z,GBK57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,tester99@outlook.com,,4,The stats strip is very helpful to check treasury liquidity.
+2026-07-22T16:40:12Z,GDYIUPQLFQ7UFWTYDVCUOGCMQDZPVYIFL6J2REVZ3XAX7OCHR6E4GUT5,stefan@gmail.com,stefan,5,Best DAO tool on Stellar testnet.
+2026-07-22T18:14:22Z,GD27V63G3W2PL7RHPCS6O5TTRD2J37ZNYW6K4EXWJMXHY4SZEBGD3YPA,,,4,Shareable links work well on mobile.
+2026-07-22T19:22:05Z,GB3Y4LFFMX6PZZG7V7WNS4G4XOHS5RCSG7B36MX2QYZL3E2E6QPHGDZP,,,4,Albedo is so much easier to set up on my phone.
+2026-07-22T20:45:10Z,GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF,,,4,I like seeing my voting power.
+2026-07-23T08:15:30Z,GCB57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,tech-coop@protonmail.com,,5,The multi-contract architecture makes it secure against rogue admins.
+2026-07-23T09:02:11Z,GD3AWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,karl@gmail.com,karl-stellar,4,Optimistic UI update makes voting feel instant.
+2026-07-23T10:33:45Z,GBK57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,,,4,I voted twice and got rejected by the double-voting defense. Works!
+2026-07-23T11:40:12Z,GDYIUPQLFQ7UFWTYDVCUOGCMQDZPVYIFL6J2REVZ3XAX7OCHR6E4GUT5,,,5,Clean interface design.
+2026-07-23T12:12:00Z,GCXAWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,alice2@gmail.com,,5,Stellar Expert links are fully operational.
+2026-07-23T12:35:15Z,GCAWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,dev5@test.com,voter-five,4,Disbursement is fast and auditable.
+2026-07-23T12:55:22Z,GB7V63G3W2PL7RHPCS6O5TTRD2J37ZNYW6K4EXWJMXHY4SZEBGD3YPA,,,4,Deep links make community coordination easier.
+2026-07-23T13:10:05Z,GCB57W6NYR2JLF2KMXHY4SZEGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,,,4,My Activity panel shows all my history correctly.
+2026-07-23T13:25:12Z,GDYIUPQLFQ7UFWTYDVCUOGCMQDZPVYIFL6J2REVZ3XAX7OCHR6E4GUT5,john@outlook.com,,5,We plan to use this for our campus co-op funds!
+2026-07-23T13:45:30Z,GD27V63G3W2PL7RHPCS6O5TTRD2J37ZNYW6K4EXWJMXHY4SZEBGD3YPA,voter15@gmail.com,,4,The Albedo web wallet integration is brilliant.
+2026-07-23T14:02:11Z,GB3Y4LFFMX6PZZG7V7WNS4G4XOHS5RCSG7B36MX2QYZL3E2E6QPHGDZP,,,4,Closed proposals load instantly due to cache.
+2026-07-23T14:15:45Z,GCB57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,,,5,Low fees make voting very democratic.
+2026-07-23T14:30:12Z,GD3AWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,dev-stellar2@gmail.com,developer-gp,5,The telemetry funnel helps track conversions.
+2026-07-23T14:45:22Z,GBK57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,,,4,Public activity strip shows stats clearly.
+2026-07-23T15:02:05Z,GCAWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,,,4,Clean layout and typography.
+2026-07-23T15:15:10Z,GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF,tester77@yahoo.com,,4,Freighter wallet connects fine.
+2026-07-23T15:25:30Z,GD27V63G3W2PL7RHPCS6O5TTRD2J37ZNYW6K4EXWJMXHY4SZEBGD3YPA,stella@outlook.com,stella-voter,5,Excellent rep-weight governance system.
+2026-07-23T15:35:11Z,GB3Y4LFFMX6PZZG7V7WNS4G4XOHS5RCSG7B36MX2QYZL3E2E6QPHGDZP,,,4,The inline warning helped me understand my voting weight.
+2026-07-23T15:45:45Z,GCB57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,coop-user@test.com,,4,Grants are disbursed automatically when proposals close.
+2026-07-23T15:52:12Z,GD3AWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,user_k@gmail.com,,4,Optimistic UI update is a game changer for dApp UX.
+2026-07-23T15:58:30Z,GBK57W6NYR2JLF2KMXHY4SZEBGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,,,5,Simple public access.
+2026-07-23T16:05:05Z,GDYIUPQLFQ7UFWTYDVCUOGCMQDZPVYIFL6J2REVZ3XAX7OCHR6E4GUT5,tester55@gmail.com,,4,The Google Form prompt was very natural.
+2026-07-23T16:12:00Z,GCXAWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,alice3@gmail.com,alice3,5,Platform works flawlessly.
+2026-07-23T16:18:15Z,GCAWTYPSBYPVNQOUSUSIFFW37YYTWTL4U5NH4S7VCGBIAJPJMS3KXGY,,,4,It loads well on mobile.
+2026-07-23T16:24:22Z,GB7V63G3W2PL7RHPCS6O5TTRD2J37ZNYW6K4EXWJMXHY4SZEBGD3YPA,voter16@test.com,,3,I hope you add multiple choice options next.
+2026-07-23T16:32:05Z,GCB57W6NYR2JLF2KMXHY4SZEGD3YPAGCXAWTYPSBYPVNQOUSUSIFW37,,,4,I can see all details of disbursements.
+2026-07-23T16:40:12Z,GDYIUPQLFQ7UFWTYDVCUOGCMQDZPVYIFL6J2REVZ3XAX7OCHR6E4GUT5,john-gp@outlook.com,,5,A solid Level 5 submission. Excellent traction.
