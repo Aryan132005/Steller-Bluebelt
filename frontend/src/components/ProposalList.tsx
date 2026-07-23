@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Proposal } from '../lib/soroban';
-import { truncateAddress } from '../lib/utils';
+import { truncateAddress, ledgersToTime } from '../lib/utils';
 
 interface Props {
   proposals: Proposal[];
@@ -199,7 +199,7 @@ export function ProposalList({
                   <span className="meta-label">Voting Deadline</span>
                   <span className="meta-value">
                     ⏱️ Ledger {proposal.votingDeadlineLedger}{' '}
-                    {!isClosed && !isDeadlinePassed && `(${proposal.votingDeadlineLedger - latestLedger} left)`}
+                    {!isClosed && !isDeadlinePassed && `(${ledgersToTime(proposal.votingDeadlineLedger - latestLedger)} left)`}
                   </span>
                 </div>
               </div>
