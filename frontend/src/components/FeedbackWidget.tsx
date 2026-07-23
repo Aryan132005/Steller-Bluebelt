@@ -4,6 +4,22 @@ interface Props {
   onClose: () => void;
 }
 
+/**
+ * GOOGLE FORM SCHEMA FOR LEVEL 5 SUBMISSION:
+ * 
+ * Create a Google Form with the following fields:
+ * 1. Wallet Address (Type: Short Answer, Required: Yes)
+ * 2. Email Address (Type: Short Answer, Required: No)
+ * 3. Full Name / GitHub Username (Type: Short Answer, Required: No)
+ * 4. Product Feedback Rating (Type: Linear Scale 1-5, Required: Yes)
+ * 5. Detailed Comments / Suggestions (Type: Paragraph, Required: No)
+ * 
+ * Once created, paste the form URL into the placeholder below.
+ */
+
+// TODO: Paste your actual Google Form URL here
+const GOOGLE_FORM_URL = 'https://forms.gle/GrantPulseFeedbackL5';
+
 export function FeedbackWidget({ onClose }: Props) {
   const [rating, setRating] = useState<number>(0);
   const [text, setText] = useState('');
@@ -56,7 +72,11 @@ export function FeedbackWidget({ onClose }: Props) {
           <button className="close-btn" onClick={onClose}>✕</button>
         </div>
         <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '8px 0 0', lineHeight: 1.4 }}>
-          Your feedback was logged in the local platform state database. We appreciate your contribution to GrantPulse!
+          Your quick rating has been saved! If you haven't already, please fill out our detailed{' '}
+          <a href={GOOGLE_FORM_URL} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)', fontWeight: 'bold' }}>
+            Official Feedback Form
+          </a>{' '}
+          to help us improve.
         </p>
       </div>
     );
@@ -65,17 +85,45 @@ export function FeedbackWidget({ onClose }: Props) {
   return (
     <div className="card feedback-card animated-slide-up">
       <div className="feedback-header">
-        <span>💬 Share your feedback!</span>
+        <span>💬 Help Us Improve GrantPulse!</span>
         <button className="close-btn" onClick={onClose} aria-label="Close form">
           ✕
         </button>
       </div>
-      <p className="feedback-subtitle">
-        Since you just completed an on-chain activity, please tell us about your experience!
+      
+      <div style={{ marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '14px' }}>
+        <p className="feedback-subtitle" style={{ margin: '0 0 12px', fontSize: '13px', lineHeight: '1.4' }}>
+          🎉 Thank you for participating in governance! We'd appreciate it if you could fill out our official feedback form:
+        </p>
+        <a 
+          href={GOOGLE_FORM_URL} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="btn btn-primary"
+          style={{ 
+            display: 'block', 
+            textDecoration: 'none', 
+            textAlign: 'center', 
+            fontSize: '13px', 
+            fontWeight: '600',
+            padding: '10px 14px'
+          }}
+          onClick={() => {
+            if ((window as any).plausible) {
+              (window as any).plausible('GoogleFormClicked');
+            }
+          }}
+        >
+          📋 Open Official Google Form
+        </a>
+      </div>
+
+      <p className="feedback-subtitle" style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 10px' }}>
+        Or submit a quick 1-to-5 star rating directly:
       </p>
 
       <form onSubmit={handleSubmit}>
-        <div className="rating-selector">
+        <div className="rating-selector" style={{ marginBottom: '10px' }}>
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
@@ -99,10 +147,10 @@ export function FeedbackWidget({ onClose }: Props) {
           maxLength={300}
         />
 
-        <div className="feedback-actions">
+        <div className="feedback-actions" style={{ marginTop: '10px' }}>
           {error && <span className="feedback-error-inline">{error}</span>}
-          <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting}>
-            {isSubmitting ? 'Sending...' : 'Submit Feedback'}
+          <button type="submit" className="btn btn-outline btn-sm" disabled={isSubmitting}>
+            {isSubmitting ? 'Sending...' : 'Submit Rating'}
           </button>
         </div>
       </form>
