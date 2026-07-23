@@ -66,9 +66,10 @@ export function OnboardingTour({ onClose }: Props) {
                 Here is how you get started:
               </p>
               <ul className="guide-steps">
-                <li>🔌 Connect a compatible Stellar wallet (Freighter, xBull, or Albedo).</li>
+                <li>🔌 Connect a wallet (use <strong>Albedo Web Wallet</strong> for instant mobile & desktop setup without extension downloads).</li>
                 <li>📝 Head to "Create Proposal" to request micro-grants for community work.</li>
                 <li>👍 Vote on active proposals using your reputation weight.</li>
+                <li>🔗 Share deep links to specific proposals to recruit voters.</li>
                 <li>📥 Deposit XLM to fund the shared community pool under "Treasury".</li>
               </ul>
             </div>
