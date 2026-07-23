@@ -21,7 +21,7 @@ export function ActivityFeed({ events, error }: { events: VoteEvent[]; error: st
       </p>
       {events.length === 0 ? (
         <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: '8px 0 0' }}>
-          No voting events detected recently. Cast a vote on a proposal to start the ledger activity log!
+          📡 Listening for real-time Soroban events... Cast a vote on a proposal to trigger the log!
         </p>
       ) : (
         <ul className="activity-list">
