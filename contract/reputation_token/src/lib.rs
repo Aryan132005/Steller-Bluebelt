@@ -23,7 +23,7 @@ pub struct AllowanceDataKey {
 pub enum DataKey {
     Balance(Address),
     Allowance(AllowanceDataKey),
-    History(Address), // Stores Vec<(u32, i128)> for balance snapshots
+    History(Address), // Stores Vec<(u32, i128)> mapping ledger sequence to historical balances for voting power snapshot audits
 }
 
 #[contract]
