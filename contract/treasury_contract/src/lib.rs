@@ -21,7 +21,7 @@ pub struct Disbursement {
 
 #[contracttype]
 pub enum DataKey {
-    Disbursed(u32), // proposal_id -> bool
+    Disbursed(u32), // proposal_id -> bool (enforces proposal disbursement idempotency)
 }
 
 #[contracterror]
