@@ -11,6 +11,8 @@ export const PROPOSAL_CONTRACT_ID = 'CDYIUPQLFQ7UFWTYDVCUOGCMQDZPVYIFL6J2REVZ3XA
 // For compatibility with any legacy imports
 export const CONTRACT_ID = PROPOSAL_CONTRACT_ID;
 
+// Soroban RPC server configured for public Stellar Testnet nodes.
+// If encountering rate-limits, you may substitute this with a custom RPC provider.
 export const SOROBAN_RPC_URL = 'https://soroban-testnet.stellar.org';
 export const HORIZON_URL = 'https://horizon-testnet.stellar.org';
 export const NETWORK_PASSPHRASE = Networks.TESTNET;
