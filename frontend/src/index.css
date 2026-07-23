@@ -1279,6 +1279,12 @@ a:focus-visible {
   letter-spacing: 0.05em;
   color: var(--text-muted);
   margin-bottom: 4px;
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+.stats-label:hover {
+  color: var(--teal);
 }
 
 .stats-value {
