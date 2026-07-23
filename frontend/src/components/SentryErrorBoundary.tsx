@@ -29,6 +29,12 @@ export class SentryErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
+  private handleClearCache = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = window.location.origin + window.location.pathname;
+  };
+
   public render() {
     if (this.state.hasError) {
       return (
@@ -37,16 +43,21 @@ export class SentryErrorBoundary extends Component<Props, State> {
           <h2>An unexpected error occurred</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: '1.5' }}>
             The UI layer encountered an exception. This issue has been logged to Sentry. 
-            You can try reloading the application.
+            You can try reloading the application or clearing cached settings.
           </p>
           {this.state.error && (
             <div className="error-log-box">
               <code>{this.state.error.toString()}</code>
             </div>
           )}
-          <button className="btn btn-primary" onClick={this.handleReload} style={{ marginTop: 12 }}>
-            🔄 Reload Platform
-          </button>
+          <div style={{ display: 'flex', gap: '10px', marginTop: 12, flexWrap: 'wrap' }}>
+            <button className="btn btn-primary" onClick={this.handleReload}>
+              🔄 Reload Platform
+            </button>
+            <button className="btn btn-outline" onClick={this.handleClearCache}>
+              🗑️ Clear Cache & Reload
+            </button>
+          </div>
         </div>
       );
     }
