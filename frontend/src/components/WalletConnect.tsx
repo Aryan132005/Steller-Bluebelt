@@ -80,6 +80,13 @@ export function WalletConnect({
     );
   }
 
+  const handleConnectClick = () => {
+    import('../lib/analytics').then(({ trackEvent }) => {
+      trackEvent('Funnel_WalletConnectAttempted');
+    });
+    onConnect();
+  };
+
   return (
     <div className="card">
       <div className="empty-state">
@@ -88,10 +95,10 @@ export function WalletConnect({
         <p style={{ maxWidth: '440px', margin: '0 auto 20px', lineHeight: '1.5', color: 'var(--text-muted)' }}>
           A reputation-weighted community micro-grants platform. Connect your Stellar wallet to submit funding proposals, vote on community initiatives, and inspect the shared treasury.
         </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
           <button
             className="btn btn-primary"
-            onClick={onConnect}
+            onClick={handleConnectClick}
             disabled={wallet.status === 'connecting'}
           >
             {wallet.status === 'connecting' ? 'Opening wallet selector…' : 'Connect Wallet'}
@@ -107,13 +114,35 @@ export function WalletConnect({
           )}
         </div>
         {wallet.status === 'error' && wallet.errorMessage && (
-          <p className="field-error">
-            {wallet.errorKind === 'not_found' && '🔌 '}
-            {wallet.errorKind === 'rejected' && '🚫 '}
-            {wallet.errorKind === 'insufficient_balance' && '💰 '}
-            {wallet.errorMessage}
-          </p>
+          <div className="wallet-error-container" style={{ marginBottom: '20px' }}>
+            <p className="field-error" style={{ margin: 0 }}>
+              {wallet.errorKind === 'not_found' && '🔌 '}
+              {wallet.errorKind === 'rejected' && '🚫 '}
+              {wallet.errorKind === 'insufficient_balance' && '💰 '}
+              {wallet.errorMessage}
+            </p>
+            {wallet.errorKind === 'not_found' && (
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: '8px', lineHeight: 1.4 }}>
+                Hint: Make sure your wallet extension is installed and unlocked, or try using <strong>Albedo</strong> which is web-based and doesn't require installation.
+              </p>
+            )}
+          </div>
         )}
+
+        <div className="wallet-help-guide" style={{ borderTop: '1px solid var(--border)', paddingTop: '20px', width: '100%', textAlign: 'left' }}>
+          <h4 style={{ fontSize: 13, margin: '0 0 10px', color: 'var(--text)' }}>💡 Which wallet should I use?</h4>
+          <ul className="wallet-guide-list" style={{ paddingLeft: '20px', margin: 0, fontSize: 12, color: 'var(--text-muted)', lineHeight: '1.6' }}>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>Albedo (Recommended for instant testing):</strong> A secure, web-based Stellar wallet. Works immediately on mobile & desktop without downloading anything.
+            </li>
+            <li style={{ marginBottom: '6px' }}>
+              <strong>Freighter (Stellar's official extension):</strong> Recommended for desktop developers. Download it at <a href="https://www.freighter.app/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)' }}>freighter.app</a>.
+            </li>
+            <li>
+              <strong>xBull:</strong> A feature-rich browser extension. Download it at <a href="https://xbull.app/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--teal)' }}>xbull.app</a>.
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );
