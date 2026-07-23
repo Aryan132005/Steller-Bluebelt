@@ -6,6 +6,7 @@ members = [
     "treasury_contract",
 ]
 
+# Release profile settings optimized for minimal Soroban WebAssembly contract size output
 [profile.release]
 opt-level = "z"
 overflow-checks = true
