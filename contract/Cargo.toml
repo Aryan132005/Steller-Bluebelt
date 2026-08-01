@@ -6,6 +6,9 @@ members = [
     "treasury_contract",
 ]
 
+[patch.crates-io]
+ethnum = { git = "https://github.com/nemo156/ethnum", tag = "v1.5.3" }
+
 # Release profile settings optimized for minimal Soroban WebAssembly contract size output
 [profile.release]
 opt-level = "z"
