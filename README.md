@@ -105,6 +105,23 @@ npm run dev
 - **`Stale Cache Reset`:** Custom Sentry boundary error view provides a "Clear Cache & Reload" escape hatch.
 
 ---
+## Screenshots
+
+Here are the screenshots demonstrating application functionality, builds, and pipeline runs:
+
+### 1. Wallet Connection & Main UI
+![Wallet Connection](![alt text](image-1.png))
+
+### 2. Mobile Responsive Viewport
+![Mobile Viewport](![alt text](image-2.png))
+
+### 3. Transaction Confirmation & Stellar Explorer
+![Transaction Confirmation](![alt text](image-3.png))
+
+### 4. CI/CD Pipeline Execution
+![CI/CD Pipeline](![alt text](image.png))
+
+---
 
 ## 🗳️ Evidence of 50+ Wallet Interactions (Cohort Activity)
 
