@@ -7,10 +7,8 @@ This Level 5 (Growth) release focuses on scaling real usage, iterating on produc
 ---
 
 ## 📽️ Submission Materials
-- **Live Demo Platform:** [https://grantpulse.vercel.app/](https://grantpulse.vercel.app/) *(Mock Link)*
-- **Demo Video Presentation:** [https://youtube.com/watch?v=mock-grantpulse-l5](https://youtube.com/watch?v=mock-grantpulse-l5) *(Mock Link)*
-- **Demo Video Script:** See [docs/DEMO_SCRIPT.md](file:///c:/Users/user/OneDrive/Desktop/Steller%20Level-4/docs/DEMO_SCRIPT.md)
-- **Pitch Deck Presentation:** See [docs/PITCH_DECK.md](file:///c:/Users/user/OneDrive/Desktop/Steller%20Level-4/docs/PITCH_DECK.md)
+- **Live Demo Platform:** [https://grantpulse.vercel.app/](https://steller-bluebelt.vercel.app/) *(Mock Link)* 
+- **Demo Video:** See [docs/DEMO_SCRIPT.md](https://drive.google.com/file/d/1neEu3Q9-qhprbI7a_UMzvpfzkuq3RttT/view?usp=sharing)
 - **Collected User Feedback Excel/CSV:** See [docs/user-feedback-export.csv](file:///c:/Users/user/OneDrive/Desktop/Steller%20Level-4/docs/user-feedback-export.csv)
 
 ---
