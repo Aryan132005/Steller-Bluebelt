@@ -1,0 +1,81 @@
+name: Deploy Contracts to Testnet
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  deploy:
+    name: Deploy to Testnet
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./contract
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo registry and binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin
+            contract/target
+          key: ${{ runner.os }}-cargo-deploy-${{ hashFiles('contract/Cargo.lock') }}
+
+      # Installs cargo-binstall instantly
+      - name: Install cargo-binstall
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      # Installs stellar-cli in seconds using precompiled binary
+      - name: Install Stellar CLI
+        run: cargo binstall --no-confirm stellar-cli
+
+      # Build standard WASM contracts and optimize them
+      - name: Build contracts
+        run: |
+          cargo build --target wasm32-unknown-unknown --release
+          stellar contract optimize --wasm target/wasm32-unknown-unknown/release/reputation_token.wasm
+          stellar contract optimize --wasm target/wasm32-unknown-unknown/release/proposal_contract.wasm
+          stellar contract optimize --wasm target/wasm32-unknown-unknown/release/treasury_contract.wasm
+
+      # Deploy the optimized contracts to Stellar Testnet
+      - name: Deploy to Testnet
+        run: |
+          echo "Generating deployer identity..."
+          stellar keys generate deployer --network testnet
+          stellar keys fund deployer --network testnet
+
+          echo "Deploying Reputation Token Contract..."
+          REP_CONTRACT_ID=$(stellar contract deploy \
+            --wasm target/wasm32-unknown-unknown/release/reputation_token.optimized.wasm \
+            --source deployer \
+            --network testnet 2>deploy_err.log) || { cat deploy_err.log; exit 1; }
+          echo "Reputation Token Contract deployed at: $REP_CONTRACT_ID"
+
+          echo "Deploying Proposal Contract..."
+          PROP_CONTRACT_ID=$(stellar contract deploy \
+            --wasm target/wasm32-unknown-unknown/release/proposal_contract.optimized.wasm \
+            --source deployer \
+            --network testnet 2>deploy_err.log) || { cat deploy_err.log; exit 1; }
+          echo "Proposal Contract deployed at: $PROP_CONTRACT_ID"
+
+          echo "Deploying Treasury Contract..."
+          TREASURY_CONTRACT_ID=$(stellar contract deploy \
+            --wasm target/wasm32-unknown-unknown/release/treasury_contract.optimized.wasm \
+            --source deployer \
+            --network testnet 2>deploy_err.log) || { cat deploy_err.log; exit 1; }
+          echo "Treasury Contract deployed at: $TREASURY_CONTRACT_ID"
+
+          echo "Fetching Test Token (Native XLM asset) ID..."
+          TOKEN_ID=$(stellar contract id asset --asset native --network testnet)
+          echo "Native Token ID is: $TOKEN_ID"
