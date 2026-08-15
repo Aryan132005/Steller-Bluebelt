@@ -10,6 +10,7 @@ use soroban_sdk::{
 pub trait ReputationTokenInterface {
     fn mint(env: Env, voter: Address, amount: i128);
     fn snapshot_balance(env: Env, voter: Address, ledger_sequence: u32) -> i128;
+    fn snapshot_balance_with_delegation(env: Env, voter: Address, ledger_sequence: u32) -> i128;
 }
 
 #[contractclient(name = "TreasuryContractClient")]
@@ -67,6 +68,7 @@ pub enum ProposalError {
     VotingDeadlineNotReached = 6,
     AlreadyVoted = 7,
     InvalidDeadline = 8,
+    NoVotingPower = 9,
 }
 
 #[contract]
@@ -175,7 +177,11 @@ impl ProposalContract {
             .ok_or(ProposalError::NotInitialized)?;
 
         let rep_client = ReputationTokenClient::new(&env, &rep_token_address);
-        let weight = rep_client.snapshot_balance(&voter, &proposal.start_ledger);
+        let weight = rep_client.snapshot_balance_with_delegation(&voter, &proposal.start_ledger);
+
+        if weight == 0 {
+            return Err(ProposalError::NoVotingPower);
+        }
 
         if support {
             proposal.support_votes += weight;
@@ -277,7 +283,7 @@ impl ProposalContract {
             .ok_or(ProposalError::NotInitialized)?;
 
         let rep_client = ReputationTokenClient::new(&env, &rep_token_address);
-        Ok(rep_client.snapshot_balance(&voter, &proposal.start_ledger))
+        Ok(rep_client.snapshot_balance_with_delegation(&voter, &proposal.start_ledger))
     }
 
     /// Read view: has this voter voted?

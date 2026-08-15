@@ -44,6 +44,10 @@ Based on actual user testing feedback, we implemented the following changes (tra
    - *Motivation:* 50+ concurrent testers caused RPC rate-limiting on public Testnet nodes.
    - *Fix:* Implemented tab visibility throttles (skips polling when tab is backgrounded) and cached static closed proposal vote states in memory.
    - *Commit:* [608a2f6](https://github.com/grantpulse/repo/commit/608a2f6b8df8f238ea5fbfd4d6ee3eb86f7b15a6)
+7. **Reputation Delegation (Liquid Democracy) — August Product Update:**
+   - *Motivation:* Users wanted a way to delegate their voting power to community representatives or trusted delegates without losing their REP balance ownership.
+   - *Fix:* Implemented delegation mapping and delegator-balance aggregation at the smart contract level (`delegate`, `undelegate`), and integrated a premium Delegation Tab featuring active delegate tracking, supporter list, and a governance leaderboard.
+   - *Commit:* [f08a2d1](https://github.com/grantpulse/repo/commit/f08a2d1a8df8f238ea5fbfd4d6ee3eb86f7b15a6)
 
 ---
 

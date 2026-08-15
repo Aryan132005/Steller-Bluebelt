@@ -382,6 +382,9 @@ function describeSorobanError(raw?: string | null): string | null {
   if (lowercase.includes('invalid deadline')) {
     return 'Invalid Deadline: The deadline ledger must be in the future.';
   }
+  if (lowercase.includes('no voting power') || lowercase.includes('novotingpower')) {
+    return 'No Voting Power: You have 0 REP balance at the snapshot ledger, or you have delegated your voting power.';
+  }
   return null;
 }
 
@@ -418,3 +421,72 @@ export async function getRecentVoteEvents(startLedger: number) {
     return [];
   }
 }
+
+// --- Reputation Token Delegation Calls ---
+
+export async function getDelegate(
+  sourcePublicKey: string | null,
+  voter: string
+): Promise<string | null> {
+  const activeSource = sourcePublicKey || PUBLIC_FALLBACK_KEY;
+  try {
+    const res = await simulateRead(
+      REPUTATION_TOKEN_ID,
+      'get_delegate',
+      [new Address(voter).toScVal()],
+      activeSource
+    );
+    if (!res) return null;
+    // Address return representation is string in scValToNative
+    return typeof res === 'string' ? res : res.toString();
+  } catch (err) {
+    console.warn('Failed to fetch delegate for voter', voter, err);
+    return null;
+  }
+}
+
+export async function getDelegators(
+  sourcePublicKey: string | null,
+  delegate: string
+): Promise<string[]> {
+  const activeSource = sourcePublicKey || PUBLIC_FALLBACK_KEY;
+  try {
+    const res = await simulateRead(
+      REPUTATION_TOKEN_ID,
+      'get_delegators',
+      [new Address(delegate).toScVal()],
+      activeSource
+    );
+    return (res as string[]) || [];
+  } catch (err) {
+    console.warn('Failed to fetch delegators for delegate', delegate, err);
+    return [];
+  }
+}
+
+export async function buildDelegateTransaction(
+  userPublicKey: string,
+  delegateAddress: string
+): Promise<string> {
+  return buildTransaction(
+    REPUTATION_TOKEN_ID,
+    'delegate',
+    [
+      new Address(userPublicKey).toScVal(),
+      new Address(delegateAddress).toScVal(),
+    ],
+    userPublicKey
+  );
+}
+
+export async function buildUndelegateTransaction(
+  userPublicKey: string
+): Promise<string> {
+  return buildTransaction(
+    REPUTATION_TOKEN_ID,
+    'undelegate',
+    [new Address(userPublicKey).toScVal()],
+    userPublicKey
+  );
+}
+

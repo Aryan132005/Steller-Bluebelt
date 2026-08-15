@@ -47,3 +47,18 @@ We integrated Plausible/Console logging to map out user onboarding conversions:
 3. `Funnel_WalletConnected` — User approves wallet links.
 4. `Funnel_FirstActionCompleted` — User successfully submits their first vote or proposal.
 - **Google Form Prompt:** Upon the first successful transaction, the widget prompts users to fill out our Google Form (`GOOGLE_FORM_URL`), collecting emails, addresses, and user experience ratings.
+
+---
+
+## 6. Reputation Delegation (Liquid Democracy) — August Feature
+To scale governance beyond active daily voters, we implemented Liquid Democracy delegation:
+1. **Contract Storage Structure:**
+   - `DelegatedTo(Address)` data key: records a voter's delegate.
+   - `Delegators(Address)` data key: stores a list of addresses that have delegated to a given delegate.
+2. **Snapshot-Safe Aggregation:**
+   - In `reputation_token`, `snapshot_balance_with_delegation` checks if a voter has delegated. If they have, it returns `0`.
+   - If they have not, it returns their own historical balance at the proposal's snapshot ledger plus the historical snapshot balances of all active delegators.
+3. **Double Voting Guards:**
+   - The proposal contract calls `snapshot_balance_with_delegation` to check voting power. If the weight is `0` (e.g. because they delegated), it rejects the vote with `ProposalError::NoVotingPower`.
+   - To vote directly, delegators must first revoke delegation, restoring their own voting weight and removing it from their delegate's weight.
+

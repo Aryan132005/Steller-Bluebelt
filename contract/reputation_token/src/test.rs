@@ -135,3 +135,63 @@ fn test_snapshot_balances() {
     assert_eq!(client.snapshot_balance(&voter, &20), 80);
     assert_eq!(client.snapshot_balance(&voter, &25), 80);
 }
+
+#[test]
+fn test_reputation_delegation() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (_, proposal_contract, client) = setup_token(&env);
+    
+    let voter_a = Address::generate(&env);
+    let voter_b = Address::generate(&env);
+    let voter_c = Address::generate(&env);
+    
+    // Mint initial balances at ledger sequence 10
+    env.ledger().set(LedgerInfo {
+        timestamp: 0,
+        protocol_version: 20,
+        sequence_number: 10,
+        network_id: [0; 32],
+        base_reserve: 0,
+        min_temp_entry_ttl: 1,
+        min_persistent_entry_ttl: 1,
+        max_entry_ttl: 1000000,
+    });
+    
+    env.as_contract(&proposal_contract, || {
+        client.mint(&voter_a, &10);
+        client.mint(&voter_b, &20);
+        client.mint(&voter_c, &30);
+    });
+    
+    // Check initial direct balances
+    assert_eq!(client.snapshot_balance_with_delegation(&voter_a, &15), 10);
+    assert_eq!(client.snapshot_balance_with_delegation(&voter_b, &15), 20);
+    assert_eq!(client.snapshot_balance_with_delegation(&voter_c, &15), 30);
+    
+    // Perform delegation: A -> B
+    client.delegate(&voter_a, &voter_b);
+    
+    // A's voting power should be 0 because A delegated to B
+    assert_eq!(client.snapshot_balance_with_delegation(&voter_a, &15), 0);
+    // B's voting power should be B's balance (20) + A's balance (10) = 30
+    assert_eq!(client.snapshot_balance_with_delegation(&voter_b, &15), 30);
+    // C's voting power remains unchanged (30)
+    assert_eq!(client.snapshot_balance_with_delegation(&voter_c, &15), 30);
+    
+    // Check delegate and delegators query
+    assert_eq!(client.get_delegate(&voter_a), Some(voter_b.clone()));
+    let delegators = client.get_delegators(&voter_b);
+    assert_eq!(delegators.len(), 1);
+    assert_eq!(delegators.get(0).unwrap(), voter_a.clone());
+    
+    // Undelegate A
+    client.undelegate(&voter_a);
+    
+    // A's power goes back to 10, B's goes back to 20
+    assert_eq!(client.snapshot_balance_with_delegation(&voter_a, &15), 10);
+    assert_eq!(client.snapshot_balance_with_delegation(&voter_b, &15), 20);
+    assert_eq!(client.get_delegate(&voter_a), None);
+    assert_eq!(client.get_delegators(&voter_b).len(), 0);
+}
+

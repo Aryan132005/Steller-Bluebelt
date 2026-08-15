@@ -2917,7 +2917,7 @@
                 "bytes": "0000000000000000000000000000000000000000000000000000000000000007"
               },
               {
-                "symbol": "snapshot_balance"
+                "symbol": "snapshot_balance_with_delegation"
               }
             ],
             "data": {
@@ -2947,7 +2947,7 @@
                 "symbol": "fn_return"
               },
               {
-                "symbol": "snapshot_balance"
+                "symbol": "snapshot_balance_with_delegation"
               }
             ],
             "data": {
@@ -3145,7 +3145,7 @@
                 "bytes": "0000000000000000000000000000000000000000000000000000000000000007"
               },
               {
-                "symbol": "snapshot_balance"
+                "symbol": "snapshot_balance_with_delegation"
               }
             ],
             "data": {
@@ -3175,7 +3175,7 @@
                 "symbol": "fn_return"
               },
               {
-                "symbol": "snapshot_balance"
+                "symbol": "snapshot_balance_with_delegation"
               }
             ],
             "data": {
@@ -3528,7 +3528,7 @@
                 "bytes": "0000000000000000000000000000000000000000000000000000000000000007"
               },
               {
-                "symbol": "snapshot_balance"
+                "symbol": "snapshot_balance_with_delegation"
               }
             ],
             "data": {
@@ -3558,7 +3558,7 @@
                 "symbol": "fn_return"
               },
               {
-                "symbol": "snapshot_balance"
+                "symbol": "snapshot_balance_with_delegation"
               }
             ],
             "data": {

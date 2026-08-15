@@ -14,6 +14,7 @@ import { trackEvent } from './lib/analytics';
 
 // Lazy-load the Treasury tab to reduce initial bundle size and split dependencies
 const TreasuryTab = lazy(() => import('./components/TreasuryTab'));
+const DelegationTab = lazy(() => import('./components/DelegationTab'));
 
 function LumenMark() {
   return (
@@ -35,6 +36,8 @@ export default function App() {
     reputationBalance,
     disbursements,
     latestLedger,
+    delegateAddress,
+    delegators,
     loading,
     loadError,
     isSyncing,
@@ -43,6 +46,8 @@ export default function App() {
     vote,
     closeProposal,
     deposit,
+    delegate,
+    undelegate,
     resetTxState,
     refresh,
   } = usePollContract(wallet.publicKey);
@@ -50,7 +55,7 @@ export default function App() {
   const { events, error: eventsError } = usePollEvents(true); // Poll events for activity feed globally
 
   // View States
-  const [activeTab, setActiveTab] = useState<'proposals' | 'create' | 'treasury'>('proposals');
+  const [activeTab, setActiveTab] = useState<'proposals' | 'create' | 'treasury' | 'delegation'>('proposals');
   const [showTour, setShowTour] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [highlightedProposalId, setHighlightedProposalId] = useState<number | null>(null);
@@ -137,6 +142,16 @@ export default function App() {
   const handleDepositSubmit = async (amount: number) => {
     trackEvent('DepositInitiated', { amount });
     await deposit(amount);
+  };
+
+  const handleDelegateSubmit = async (targetAddr: string) => {
+    trackEvent('DelegationInitiated', { targetAddr });
+    await delegate(targetAddr);
+  };
+
+  const handleUndelegateSubmit = async () => {
+    trackEvent('UndelegationInitiated');
+    await undelegate();
   };
 
   // Calculate statistics strip metrics
@@ -249,6 +264,12 @@ export default function App() {
               >
                 🏦 treasury pool
               </button>
+              <button
+                className={`nav-tab-btn ${activeTab === 'delegation' ? 'active' : ''}`}
+                onClick={() => setActiveTab('delegation')}
+              >
+                🗳️ delegation
+              </button>
             </nav>
           </div>
         ) : (
@@ -312,6 +333,25 @@ export default function App() {
                 loading={loading}
                 isSubmitting={txState.state === 'pending'}
                 onDeposit={handleDepositSubmit}
+              />
+            </Suspense>
+          )}
+
+          {isConnected && activeTab === 'delegation' && (
+            <Suspense
+              fallback={
+                <div className="card skeleton-card">
+                  <div className="skeleton skeleton-title" style={{ width: '40%' }} />
+                  <div className="skeleton skeleton-badge" style={{ height: 48, marginTop: 12 }} />
+                </div>
+              }
+            >
+              <DelegationTab
+                delegateAddress={delegateAddress}
+                delegators={delegators}
+                isSubmitting={txState.state === 'pending'}
+                onDelegate={handleDelegateSubmit}
+                onUndelegate={handleUndelegateSubmit}
               />
             </Suspense>
           )}

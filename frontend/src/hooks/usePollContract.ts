@@ -12,6 +12,10 @@ import {
   submitTransaction,
   getLatestLedgerSequence,
   ContractCallError,
+  getDelegate,
+  getDelegators,
+  buildDelegateTransaction,
+  buildUndelegateTransaction,
   type Proposal,
   type Disbursement,
 } from '../lib/soroban';
@@ -30,6 +34,9 @@ export function usePollContract(publicKey: string | null) {
   const [disbursements, setDisbursements] = useState<Disbursement[]>([]);
   const [latestLedger, setLatestLedger] = useState<number>(0);
 
+  const [delegateAddress, setDelegateAddress] = useState<string | null>(null);
+  const [delegators, setDelegators] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [txState, setTxState] = useState<TxState>({ state: 'idle' });
@@ -45,18 +52,22 @@ export function usePollContract(publicKey: string | null) {
     }
     setIsSyncing(true);
     try {
-      const [props, tBal, rBal, hist, seq] = await Promise.all([
+      const [props, tBal, rBal, hist, seq, delegateAddr, delegs] = await Promise.all([
         getProposals(publicKey),
         getTreasuryBalance(publicKey),
         publicKey ? getReputationBalance(publicKey, publicKey) : Promise.resolve(0),
         getDisbursementHistory(publicKey),
         getLatestLedgerSequence(),
+        publicKey ? getDelegate(publicKey, publicKey) : Promise.resolve(null),
+        publicKey ? getDelegators(publicKey, publicKey) : Promise.resolve([]),
       ]);
       setProposals(props);
       setTreasuryBalance(tBal);
       setReputationBalance(rBal);
       setDisbursements(hist);
       setLatestLedger(seq);
+      setDelegateAddress(delegateAddr);
+      setDelegators(delegs);
       setLoadError(null);
     } catch (err: any) {
       console.error('Refresh error:', err);
@@ -258,6 +269,64 @@ export function usePollContract(publicKey: string | null) {
     [publicKey, refresh]
   );
 
+  const delegate = useCallback(
+    async (targetAddress: string) => {
+      if (!publicKey) return;
+      setTxState({ state: 'pending', step: 'building' });
+      try {
+        const unsignedXdr = await buildDelegateTransaction(publicKey, targetAddress);
+
+        setTxState({ state: 'pending', step: 'signing' });
+        const { signedTxXdr } = await StellarWalletsKit.signTransaction(unsignedXdr, {
+          networkPassphrase: NETWORK_PASSPHRASE,
+          address: publicKey,
+        });
+
+        setTxState({ state: 'pending', step: 'submitting' });
+        const hash = await submitTransaction(signedTxXdr);
+
+        setTxState({ state: 'success', hash, action: 'delegate' });
+        await refresh();
+      } catch (err: any) {
+        const message =
+          err instanceof ContractCallError
+            ? err.message
+            : err?.message || 'Something went wrong setting delegation.';
+        setTxState({ state: 'error', message });
+      }
+    },
+    [publicKey, refresh]
+  );
+
+  const undelegate = useCallback(
+    async () => {
+      if (!publicKey) return;
+      setTxState({ state: 'pending', step: 'building' });
+      try {
+        const unsignedXdr = await buildUndelegateTransaction(publicKey);
+
+        setTxState({ state: 'pending', step: 'signing' });
+        const { signedTxXdr } = await StellarWalletsKit.signTransaction(unsignedXdr, {
+          networkPassphrase: NETWORK_PASSPHRASE,
+          address: publicKey,
+        });
+
+        setTxState({ state: 'pending', step: 'submitting' });
+        const hash = await submitTransaction(signedTxXdr);
+
+        setTxState({ state: 'success', hash, action: 'undelegate' });
+        await refresh();
+      } catch (err: any) {
+        const message =
+          err instanceof ContractCallError
+            ? err.message
+            : err?.message || 'Something went wrong removing delegation.';
+        setTxState({ state: 'error', message });
+      }
+    },
+    [publicKey, refresh]
+  );
+
   const resetTxState = useCallback(() => setTxState({ state: 'idle' }), []);
 
   return {
@@ -266,6 +335,8 @@ export function usePollContract(publicKey: string | null) {
     reputationBalance,
     disbursements,
     latestLedger,
+    delegateAddress,
+    delegators,
     loading,
     loadError,
     isSyncing,
@@ -274,6 +345,8 @@ export function usePollContract(publicKey: string | null) {
     vote,
     closeProposal,
     deposit,
+    delegate,
+    undelegate,
     resetTxState,
     refresh,
   };

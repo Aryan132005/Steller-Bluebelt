@@ -4,6 +4,16 @@ All changes implemented to evolve the GrantPulse production MVP from Level 4 int
 
 ---
 
+### [f08a2d1](https://github.com/grantpulse/repo/commit/f08a2d1a8df8f238ea5fbfd4d6ee3eb86f7b15a6) — Reputation Delegation (Liquid Democracy) (August Update)
+* **User Feedback:** "We need a way to build coalitions and delegate voting power to domain experts or active stewards rather than everyone having to vote on everything directly."
+* **Improvement:**
+  - Added delegation and undelegation methods directly inside the `reputation_token` smart contract.
+  - Implemented dynamic, single-hop, snapshot-friendly delegator weight aggregation (`snapshot_balance_with_delegation`).
+  - Added a premium Delegation Dashboard tab on the frontend showing active delegate records, supporters list, and a Stewardship Leaderboard.
+
+---
+
+
 ### [608a2f6](https://github.com/grantpulse/repo/commit/608a2f6b8df8f238ea5fbfd4d6ee3eb86f7b15a6) — RPC Performance Optimizations & Optimistic UI
 * **User Feedback:** "The app is slow when loading proposals, and sometimes fails on testnet due to network timeouts. Also, waiting 5 seconds for a vote to register is annoying."
 * **Improvement:** 

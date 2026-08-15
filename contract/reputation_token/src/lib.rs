@@ -24,6 +24,8 @@ pub enum DataKey {
     Balance(Address),
     Allowance(AllowanceDataKey),
     History(Address), // Stores Vec<(u32, i128)> mapping ledger sequence to historical balances for voting power snapshot audits
+    DelegatedTo(Address), // voter -> delegate address
+    Delegators(Address), // delegate -> Vec<voter> list of delegators
 }
 
 #[contract]
@@ -126,6 +128,129 @@ impl ReputationToken {
             }
         }
         last_balance
+    }
+
+    /// Delegate voting power to another address.
+    pub fn delegate(env: Env, from: Address, to: Address) {
+        from.require_auth();
+        if from == to {
+            panic!("cannot delegate to yourself");
+        }
+
+        let current_delegate: Option<Address> = env
+            .storage()
+            .persistent()
+            .get(&DataKey::DelegatedTo(from.clone()));
+
+        if let Some(ref current) = current_delegate {
+            if current == &to {
+                return;
+            }
+            // Remove from old delegate's list of delegators
+            let old_key = DataKey::Delegators(current.clone());
+            let mut delegators: Vec<Address> = env
+                .storage()
+                .persistent()
+                .get(&old_key)
+                .unwrap_or_else(|| Vec::new(&env));
+            if let Some(idx) = delegators.iter().position(|x| x == from) {
+                delegators.remove(idx as u32);
+            }
+            env.storage().persistent().set(&old_key, &delegators);
+            env.storage().persistent().extend_ttl(&old_key, 4000, 10000);
+        }
+
+        // Set new delegate
+        let del_key = DataKey::DelegatedTo(from.clone());
+        env.storage().persistent().set(&del_key, &to);
+        env.storage().persistent().extend_ttl(&del_key, 4000, 10000);
+
+        // Add to new delegate's list of delegators
+        let new_key = DataKey::Delegators(to.clone());
+        let mut delegators: Vec<Address> = env
+            .storage()
+            .persistent()
+            .get(&new_key)
+            .unwrap_or_else(|| Vec::new(&env));
+        if !delegators.contains(&from) {
+            delegators.push_back(from.clone());
+        }
+        env.storage().persistent().set(&new_key, &delegators);
+        env.storage().persistent().extend_ttl(&new_key, 4000, 10000);
+
+        env.events().publish((symbol_short!("delegate"), from, to), ());
+    }
+
+    /// Remove delegation and resume direct voting.
+    pub fn undelegate(env: Env, from: Address) {
+        from.require_auth();
+
+        let current_delegate: Option<Address> = env
+            .storage()
+            .persistent()
+            .get(&DataKey::DelegatedTo(from.clone()));
+
+        if let Some(current) = current_delegate {
+            // Remove from old delegate's list of delegators
+            let old_key = DataKey::Delegators(current);
+            let mut delegators: Vec<Address> = env
+                .storage()
+                .persistent()
+                .get(&old_key)
+                .unwrap_or_else(|| Vec::new(&env));
+            if let Some(idx) = delegators.iter().position(|x| x == from) {
+                delegators.remove(idx as u32);
+            }
+            env.storage().persistent().set(&old_key, &delegators);
+            env.storage().persistent().extend_ttl(&old_key, 4000, 10000);
+
+            // Remove delegation record
+            env.storage().persistent().remove(&DataKey::DelegatedTo(from.clone()));
+        }
+
+        env.events().publish((symbol_short!("undel"), from), ());
+    }
+
+    /// Get who this address has delegated their voting power to.
+    pub fn get_delegate(env: Env, from: Address) -> Option<Address> {
+        env.storage().persistent().get(&DataKey::DelegatedTo(from))
+    }
+
+    /// Get list of addresses that have delegated to this address.
+    pub fn get_delegators(env: Env, delegate: Address) -> Vec<Address> {
+        env.storage().persistent().get(&DataKey::Delegators(delegate)).unwrap_or_else(|| Vec::new(&env))
+    }
+
+    /// Read path for historical balance with reputation delegation at or before a given ledger sequence.
+    pub fn snapshot_balance_with_delegation(env: Env, voter: Address, ledger_sequence: u32) -> i128 {
+        // If the voter has delegated their power, they have 0 voting weight directly
+        let delegate: Option<Address> = env.storage().persistent().get(&DataKey::DelegatedTo(voter.clone()));
+        if delegate.is_some() {
+            return 0;
+        }
+
+        // Own balance
+        let mut total_power = Self::snapshot_balance(env.clone(), voter.clone(), ledger_sequence);
+
+        // Sum up snapshot balances of all direct delegators
+        let delegators: Vec<Address> = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Delegators(voter.clone()))
+            .unwrap_or_else(|| Vec::new(&env));
+
+        for delegator in delegators.iter() {
+            // Confirm the delegator still delegates to this voter
+            let active_delegate: Option<Address> = env.storage().persistent().get(&DataKey::DelegatedTo(delegator.clone()));
+            if let Some(target) = active_delegate {
+                if target == voter {
+                    let delegator_balance = Self::snapshot_balance(env.clone(), delegator, ledger_sequence);
+                    total_power += delegator_balance;
+                }
+            }
+        }
+
+        total_power
     }
 
     // --- SEP-41 Fungible Token Interface ---

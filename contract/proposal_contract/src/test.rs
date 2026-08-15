@@ -242,3 +242,51 @@ fn test_snapshot_prevents_mid_vote_manipulation() {
     let proposal = proposal_client.get_proposal(&prop_id);
     assert_eq!(proposal.support_votes, 10);
 }
+
+#[test]
+fn test_delegated_voting() {
+    let TestEnv {
+        env,
+        admin: _,
+        voter_a,
+        voter_b,
+        voter_c: _,
+        recipient,
+        rep_client,
+        treasury_client: _,
+        proposal_client,
+        token_client: _,
+        token_admin_client: _,
+    } = setup_integration_test();
+
+    // 1. Mint REP
+    env.as_contract(&proposal_client.address, || {
+        rep_client.mint(&voter_a, &10);
+        rep_client.mint(&voter_b, &20);
+    });
+
+    // 2. Delegate A -> B
+    rep_client.delegate(&voter_a, &voter_b);
+
+    // 3. Create proposal
+    let prop_id = proposal_client.create_proposal(
+        &voter_b,
+        &String::from_str(&env, "Delegated voting test"),
+        &String::from_str(&env, "Testing delegation"),
+        &500i128,
+        &recipient,
+        &20u32,
+    );
+
+    // 4. Voter B votes
+    proposal_client.vote(&voter_b, &prop_id, &true);
+
+    // 5. Verify that support votes includes Voter A's delegated weight (10 + 20 = 30)
+    let proposal = proposal_client.get_proposal(&prop_id);
+    assert_eq!(proposal.support_votes, 30);
+
+    // 6. Verify that Voter A cannot vote directly because of NoVotingPower error
+    let res = proposal_client.try_vote(&voter_a, &prop_id, &true);
+    assert!(res.is_err());
+}
+
