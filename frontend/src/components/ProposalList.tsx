@@ -161,6 +161,19 @@ export function ProposalList({
               <div className="proposal-header">
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <span className={`badge ${badgeClass}`}>{badgeText}</span>
+                  {proposal.votingMechanism === 1 ? (
+                    <span className="badge info-badge" style={{ backgroundColor: 'rgba(78, 205, 196, 0.1)', color: '#4ecdc4', border: '1px solid rgba(78, 205, 196, 0.3)', textTransform: 'uppercase', fontSize: '9px', fontWeight: 'bold' }}>
+                      🧮 Quadratic Voting
+                    </span>
+                  ) : proposal.votingMechanism === 2 ? (
+                    <span className="badge info-badge" style={{ backgroundColor: 'rgba(255, 107, 107, 0.1)', color: '#ff6b6b', border: '1px solid rgba(255, 107, 107, 0.3)', textTransform: 'uppercase', fontSize: '9px', fontWeight: 'bold' }}>
+                      👥 Equal Weight
+                    </span>
+                  ) : (
+                    <span className="badge info-badge" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-muted)', border: '1px solid rgba(255, 255, 255, 0.1)', textTransform: 'uppercase', fontSize: '9px', fontWeight: 'bold' }}>
+                      ⚖️ Linear Voting
+                    </span>
+                  )}
                   {isCurrentlyHighlighted && <span className="badge highlighted-badge">Shared</span>}
                 </div>
                 <div className="proposal-header-right">
@@ -232,12 +245,21 @@ export function ProposalList({
                   <>
                     {proposal.userVoted ? (
                       <div className="voted-indicator">
-                        ✅ You voted (Weight: <strong>{proposal.userWeight ?? 0} REP</strong>)
+                        ✅ You voted (Weight: <strong>{proposal.userWeight ?? 0} vote power</strong>)
                       </div>
                     ) : (
                       <div className="voting-action-block">
                         <div className="vote-weight-inline-explanation">
-                          💡 You will vote with <strong>{proposal.userWeight ?? 0} REP</strong> (reputation balance captured at snapshot block #{proposal.startLedger}). Voting awards you <strong>+1 REP</strong>!
+                          💡 You will vote with <strong>{proposal.userWeight ?? 0} vote power</strong> under{' '}
+                          <strong>
+                            {proposal.votingMechanism === 1
+                              ? 'Quadratic Voting (√REP)'
+                              : proposal.votingMechanism === 2
+                              ? 'Equal Weight (1 wallet = 1 vote)'
+                              : 'Linear reputation-weighted'}
+                          </strong>{' '}
+                          rules (reputation snapshot at block #{proposal.startLedger}). Voting awards you{' '}
+                          <strong>+1 REP</strong>!
                         </div>
                         <div className="voting-buttons">
                           <button

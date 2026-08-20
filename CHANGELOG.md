@@ -4,6 +4,16 @@ All changes implemented to evolve the GrantPulse production MVP from Level 4 int
 
 ---
 
+### Configurable Voting Mechanisms (Linear, Quadratic, Equal-Weight) (August Feature Update)
+* **User Feedback:** "We need alternative voting mechanism options such as Quadratic Voting to limit the power of reputation whales, or Equal-Weight voting for simplified democratic decisions."
+* **Improvement:**
+  - Implemented configurable voting mechanisms at proposal creation (`create_proposal`).
+  - Added integer square root utility (`isqrt`) to compute voting weight quadratic discount factor dynamically on-chain in `vote` and `get_vote_weight`.
+  - Added frontend choice dropdown during proposal submission.
+  - Rendered beautiful indicator badges (`Linear`, `Quadratic`, `Equal Weight`) and dynamic instructions on the proposal cards.
+
+---
+
 ### [f08a2d1](https://github.com/grantpulse/repo/commit/f08a2d1a8df8f238ea5fbfd4d6ee3eb86f7b15a6) — Reputation Delegation (Liquid Democracy) (August Update)
 * **User Feedback:** "We need a way to build coalitions and delegate voting power to domain experts or active stewards rather than everyone having to vote on everything directly."
 * **Improvement:**

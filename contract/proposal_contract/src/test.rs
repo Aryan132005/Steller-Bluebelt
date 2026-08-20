@@ -125,6 +125,7 @@ fn test_integration_flow() {
         &1500i128,
         &recipient,
         &20u32,
+        &0u32,
     );
     assert_eq!(prop_id, 1);
 
@@ -215,6 +216,7 @@ fn test_snapshot_prevents_mid_vote_manipulation() {
         &1000i128,
         &recipient,
         &20u32,
+        &0u32,
     );
 
     // 3. User B transfers 15 REP to User A mid-vote (at ledger 15)
@@ -276,6 +278,7 @@ fn test_delegated_voting() {
         &500i128,
         &recipient,
         &20u32,
+        &0u32,
     );
 
     // 4. Voter B votes
@@ -289,4 +292,100 @@ fn test_delegated_voting() {
     let res = proposal_client.try_vote(&voter_a, &prop_id, &true);
     assert!(res.is_err());
 }
+
+#[test]
+fn test_quadratic_voting_mechanism() {
+    let TestEnv {
+        env,
+        admin: _,
+        voter_a,
+        voter_b,
+        voter_c: _,
+        recipient,
+        rep_client,
+        treasury_client: _,
+        proposal_client,
+        token_client: _,
+        token_admin_client: _,
+    } = setup_integration_test();
+
+    // 1. Setup initial reputation balances
+    env.as_contract(&proposal_client.address, || {
+        rep_client.mint(&voter_a, &9);   // sqrt(9) = 3
+        rep_client.mint(&voter_b, &10);  // sqrt(10) = 3
+    });
+
+    // 2. Create proposal with Quadratic mechanism (type = 1)
+    let prop_id = proposal_client.create_proposal(
+        &voter_a,
+        &String::from_str(&env, "Quadratic Voting Initiative"),
+        &String::from_str(&env, "Using QV rules"),
+        &1000i128,
+        &recipient,
+        &20u32,
+        &1u32,
+    );
+
+    // 3. Voter A votes YES, Voter B votes YES
+    proposal_client.vote(&voter_a, &prop_id, &true);
+    proposal_client.vote(&voter_b, &prop_id, &true);
+
+    // 4. Verify vote weight for each voter and proposal totals
+    let weight_a = proposal_client.get_vote_weight(&voter_a, &prop_id);
+    let weight_b = proposal_client.get_vote_weight(&voter_b, &prop_id);
+    assert_eq!(weight_a, 3);
+    assert_eq!(weight_b, 3);
+
+    let proposal = proposal_client.get_proposal(&prop_id);
+    assert_eq!(proposal.support_votes, 6);
+}
+
+#[test]
+fn test_equal_weight_voting_mechanism() {
+    let TestEnv {
+        env,
+        admin: _,
+        voter_a,
+        voter_b,
+        voter_c: _,
+        recipient,
+        rep_client,
+        treasury_client: _,
+        proposal_client,
+        token_client: _,
+        token_admin_client: _,
+    } = setup_integration_test();
+
+    // 1. Setup initial reputation balances
+    env.as_contract(&proposal_client.address, || {
+        rep_client.mint(&voter_a, &100); // balance = 100 REP
+        rep_client.mint(&voter_b, &5);   // balance = 5 REP
+    });
+
+    // 2. Create proposal with Equal Weight mechanism (type = 2)
+    let prop_id = proposal_client.create_proposal(
+        &voter_a,
+        &String::from_str(&env, "Equal Weight Initiative"),
+        &String::from_str(&env, "Using 1 person 1 vote rules"),
+        &1000i128,
+        &recipient,
+        &20u32,
+        &2u32,
+    );
+
+    // 3. Voter A votes YES, Voter B votes NO
+    proposal_client.vote(&voter_a, &prop_id, &true);
+    proposal_client.vote(&voter_b, &prop_id, &false);
+
+    // 4. Verify vote weights are exactly 1 for both
+    let weight_a = proposal_client.get_vote_weight(&voter_a, &prop_id);
+    let weight_b = proposal_client.get_vote_weight(&voter_b, &prop_id);
+    assert_eq!(weight_a, 1);
+    assert_eq!(weight_b, 1);
+
+    let proposal = proposal_client.get_proposal(&prop_id);
+    assert_eq!(proposal.support_votes, 1);
+    assert_eq!(proposal.oppose_votes, 1);
+}
+
 

@@ -8,7 +8,8 @@ interface Props {
     description: string,
     amount: number,
     recipient: string,
-    deadlineLedgers: number
+    deadlineLedgers: number,
+    votingMechanism: number
   ) => void;
 }
 
@@ -22,6 +23,7 @@ export function CreateProposalForm({
   const [amountStr, setAmountStr] = useState('');
   const [recipient, setRecipient] = useState('');
   const [durationStr, setDurationStr] = useState('200'); // default ~20 minutes (approx 6s per ledger)
+  const [votingMechanismStr, setVotingMechanismStr] = useState('0'); // default: Linear
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -73,7 +75,8 @@ export function CreateProposalForm({
       description.trim(),
       Number(amountStr),
       recipient.trim(),
-      Number(durationStr)
+      Number(durationStr),
+      Number(votingMechanismStr)
     );
   };
 
@@ -143,6 +146,20 @@ export function CreateProposalForm({
               <option value="10000">📅 Extended (10,000 ledgers / ~16 hours)</option>
             </select>
             {errors.duration && <p className="field-error">{errors.duration}</p>}
+          </div>
+
+          <div className="form-group flex-1">
+            <label htmlFor="votingMechanism">Voting Mechanism</label>
+            <select
+              id="votingMechanism"
+              value={votingMechanismStr}
+              onChange={(e) => setVotingMechanismStr(e.target.value)}
+              disabled={isSubmitting}
+            >
+              <option value="0">⚖️ Linear (1 REP = 1 Vote)</option>
+              <option value="1">🧮 Quadratic (√REP Weight)</option>
+              <option value="2">👥 Equal (1 Wallet = 1 Vote)</option>
+            </select>
           </div>
         </div>
 

@@ -127,10 +127,11 @@ export default function App() {
     description: string,
     amount: number,
     recipient: string,
-    deadlineLedgers: number
+    deadlineLedgers: number,
+    votingMechanism: number
   ) => {
-    trackEvent('ProposalCreationInitiated', { amount });
-    await createProposal(title, description, amount, recipient, deadlineLedgers);
+    trackEvent('ProposalCreationInitiated', { amount, votingMechanism });
+    await createProposal(title, description, amount, recipient, deadlineLedgers, votingMechanism);
     setActiveTab('proposals'); // Switch back to view proposals
   };
 
@@ -187,7 +188,7 @@ export default function App() {
           </div>
           <div className="stats-item">
             <span className="stats-label">🗳️ Total Votes</span>
-            <span className="stats-value">{totalVotesCast} REP</span>
+            <span className="stats-value">{totalVotesCast} Power</span>
           </div>
           <div className="stats-item">
             <span className="stats-label">🏦 Total Grants</span>

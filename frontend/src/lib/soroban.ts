@@ -38,6 +38,7 @@ export interface Proposal {
   opposeVotes: number;
   closed: boolean;
   approved: boolean;
+  votingMechanism: number;
   userVoted?: boolean;
   userWeight?: number;
 }
@@ -195,6 +196,7 @@ export async function getProposals(sourcePublicKey: string | null): Promise<Prop
           opposeVotes: Number(p.oppose_votes),
           closed: p.closed,
           approved: p.approved,
+          votingMechanism: Number(p.voting_mechanism),
           userVoted,
           userWeight,
         };
@@ -241,7 +243,8 @@ export async function buildCreateProposalTransaction(
   description: string,
   requestedAmount: number,
   recipient: string,
-  deadlineLedger: number
+  deadlineLedger: number,
+  votingMechanism: number
 ): Promise<string> {
   return buildTransaction(
     PROPOSAL_CONTRACT_ID,
@@ -253,6 +256,7 @@ export async function buildCreateProposalTransaction(
       nativeToScVal(requestedAmount * 10_000_000, { type: 'i128' }),
       new Address(recipient).toScVal(),
       nativeToScVal(deadlineLedger, { type: 'u32' }),
+      nativeToScVal(votingMechanism, { type: 'u32' }),
     ],
     voterPublicKey
   );

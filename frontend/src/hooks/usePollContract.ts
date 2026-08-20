@@ -99,7 +99,14 @@ export function usePollContract(publicKey: string | null) {
   // --- Proposal Actions ---
 
   const createProposal = useCallback(
-    async (title: string, description: string, amount: number, recipient: string, deadlineLedgers: number) => {
+    async (
+      title: string,
+      description: string,
+      amount: number,
+      recipient: string,
+      deadlineLedgers: number,
+      votingMechanism: number
+    ) => {
       if (!publicKey) return;
       setTxState({ state: 'pending', step: 'building' });
       try {
@@ -112,7 +119,8 @@ export function usePollContract(publicKey: string | null) {
           description,
           amount,
           recipient,
-          deadline
+          deadline,
+          votingMechanism
         );
 
         setTxState({ state: 'pending', step: 'signing' });
@@ -153,7 +161,14 @@ export function usePollContract(publicKey: string | null) {
 
       // Optimistic UI Update: immediately mark as voted and adjust tally
       const originalProposals = [...proposals];
-      const addedWeight = reputationBalance || 1;
+      const targetProposal = proposals.find((p) => p.id === proposalId);
+      const mechanism = targetProposal ? targetProposal.votingMechanism : 0;
+      let addedWeight = reputationBalance || 1;
+      if (mechanism === 1) {
+        addedWeight = Math.floor(Math.sqrt(reputationBalance || 1));
+      } else if (mechanism === 2) {
+        addedWeight = reputationBalance > 0 ? 1 : 0;
+      }
 
       setProposals((prevProposals) =>
         prevProposals.map((p) => {

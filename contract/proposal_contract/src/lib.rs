@@ -40,6 +40,7 @@ pub struct Proposal {
     pub oppose_votes: i128,
     pub closed: bool,
     pub approved: bool,
+    pub voting_mechanism: u32,
 }
 
 #[derive(Clone)]
@@ -103,6 +104,7 @@ impl ProposalContract {
         requested_amount: i128,
         recipient: Address,
         voting_deadline_ledger: u32,
+        voting_mechanism: u32,
     ) -> Result<u32, ProposalError> {
         creator.require_auth();
 
@@ -128,6 +130,7 @@ impl ProposalContract {
             oppose_votes: 0,
             closed: false,
             approved: false,
+            voting_mechanism,
         };
 
         let key = DataKey::Proposal(count);
@@ -183,10 +186,16 @@ impl ProposalContract {
             return Err(ProposalError::NoVotingPower);
         }
 
+        let vote_power = match proposal.voting_mechanism {
+            1 => isqrt(weight), // Quadratic Voting
+            2 => 1,            // Equal Weight (One Person, One Vote)
+            _ => weight,       // Linear (default)
+        };
+
         if support {
-            proposal.support_votes += weight;
+            proposal.support_votes += vote_power;
         } else {
-            proposal.oppose_votes += weight;
+            proposal.oppose_votes += vote_power;
         }
 
         // Mark as voted
@@ -283,7 +292,14 @@ impl ProposalContract {
             .ok_or(ProposalError::NotInitialized)?;
 
         let rep_client = ReputationTokenClient::new(&env, &rep_token_address);
-        Ok(rep_client.snapshot_balance_with_delegation(&voter, &proposal.start_ledger))
+        let weight = rep_client.snapshot_balance_with_delegation(&voter, &proposal.start_ledger);
+
+        let vote_power = match proposal.voting_mechanism {
+            1 => isqrt(weight),
+            2 => 1,
+            _ => weight,
+        };
+        Ok(vote_power)
     }
 
     /// Read view: has this voter voted?
@@ -291,6 +307,19 @@ impl ProposalContract {
         let voted_key = DataKey::Voted(VotedDataKey { proposal_id, voter });
         env.storage().persistent().has(&voted_key)
     }
+}
+
+fn isqrt(n: i128) -> i128 {
+    if n <= 0 {
+        return 0;
+    }
+    let mut x0 = n;
+    let mut x1 = (x0 + 1) / 2;
+    while x1 < x0 {
+        x0 = x1;
+        x1 = (x0 + n / x0) / 2;
+    }
+    x0
 }
 
 mod test;
